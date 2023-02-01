@@ -1,0 +1,16 @@
+[GeometryConstruction] :
+	Figures :
+		GCLineSegment[ Point(3, 4), Point(5, 2) ]
+		Slave points :
+			Point(4, 3) - Midpoint for Point(3.0, 4.0) and Point(5.0, 2.0)
+
+		GCLineSegment[ Point(3, 4), Point(6, 5) ]
+		Slave points :
+			Point(4.2, 4.4) - Base of perpendicular from Point(5.0, 2.0) to line of Point(3.0, 4.0) and Point(6.0, 5.0)
+
+		GCLineSegment[ Point(5, 2), Point(4.2, 4.4) ]
+		Slave points :
+
+	Single points :
+		Point(5.5, 3.5)
+		Point(1, 1)

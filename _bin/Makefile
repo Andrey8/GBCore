@@ -5,7 +5,7 @@ SRC_DIR=../src
 TESTS_DIR=../tests
 
 CORE_OBJECTS=GeometryConstruction.o Utils.o Geometry.o
-GCTEST_OBJECTS=gc_test GeometryConstructionTests.o TestsLauncher.o
+GCTEST_OBJECTS=GeometryConstructionTests.o TestsLauncher.o
 #CCTEST_OBJECTS=
 EXECUTABLES=gc_test
 

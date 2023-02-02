@@ -56,6 +56,17 @@ namespace Core
 		Point operator+( Point const &, Vector const & );
 		Point operator-( Point const &, Vector const & );
 
+		class Rect
+		{
+		public:
+			Rect( Point const &, Point const & );
+
+			double GetTopY() const;
+			double GetBottomY() const;
+			double GetLeftX() const;
+			double GetRightX() const;
+		};
+
         class LineSegment
         {
         public:
@@ -148,7 +159,9 @@ namespace Core
         Point GetPerpendicularBase( Point const & source, Point const & p1, Point const & p2 );
         Point GetPointOnLineSegment( Point const & p1, Point const & p2, double ratio );
 
+		std::vector< Point > GetIntersectionLineSegment( Line const & line, Rect const & rect );
 		std::vector< Point > GetIntersectionPoints( LineSegment const &, LineSegment const & );
+		std::vector< Point > GetIntersectionPoints( Line const &, Line const &, Rect const & boundingBox );
 		std::vector< Point > GetIntersectionPoints( Circle const &, Line const & );
 		std::vector< Point > GetIntersectionPoints( Circle const &, LineSegment const & );
 

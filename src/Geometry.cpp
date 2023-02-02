@@ -203,15 +203,22 @@ std::vector<Core::Geometry::Point> Core::Geometry::GetIntersectionPoints( const 
 	}
 	case 1 :
 	{
+		Point const p = intersectionPoints[ 0 ];
 
+		if ( PointIsBetweenTwoOthers( p, ls.P1(), ls.P2() ) )
+		{
+			return intersectionPoints;
+		}
+
+		return std::vector< Point >();
 	}
 	case 0 :
 	{
-
+		return std::vector< Point >();
 	}
 	default :
 	{
-
+		throw std::logic_error( "ERROR : invalid number of intersection points.\n" );
 	}
 	}
 }
@@ -340,4 +347,17 @@ bool Core::Geometry::PointIsBetweenTwoOthers(const Core::Geometry::Point & p, co
 	}
 
 	return p == p1;
+}
+
+std::vector<Core::Geometry::Point> Core::Geometry::GetIntersectionPoints(const Core::Geometry::Line & line1, const Core::Geometry::Line & line2, const Core::Geometry::Rect & boundingBox)
+{
+	LineSegment const ls1 = GetIntersectionLineSegment( line1, boundingBox );
+	LineSegment const ls2 = GetIntersectionLineSegment( line2, boundingBox );
+
+	return GetIntersectionPoints( ls1, ls2 );
+}
+
+std::vector<Core::Geometry::Point> Core::Geometry::GetIntersectionLineSegment(const Core::Geometry::Line & line, const Core::Geometry::Rect & rect)
+{
+
 }

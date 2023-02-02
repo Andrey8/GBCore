@@ -1,2 +1,4 @@
-/_bin/
+/_bin/*
 /GBCore.*
+
+!_bin/Makefile

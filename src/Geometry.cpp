@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <cmath>
+#include <algorithm>
 
 
 
@@ -351,13 +352,162 @@ bool Core::Geometry::PointIsBetweenTwoOthers(const Core::Geometry::Point & p, co
 
 std::vector<Core::Geometry::Point> Core::Geometry::GetIntersectionPoints(const Core::Geometry::Line & line1, const Core::Geometry::Line & line2, const Core::Geometry::Rect & boundingBox)
 {
-	LineSegment const ls1 = GetIntersectionLineSegment( line1, boundingBox );
-	LineSegment const ls2 = GetIntersectionLineSegment( line2, boundingBox );
+	LineSegment const ls1 = GetIntersectionLineSegment( line1, boundingBox ).front();
+	LineSegment const ls2 = GetIntersectionLineSegment( line2, boundingBox ).front();
 
 	return GetIntersectionPoints( ls1, ls2 );
 }
 
-std::vector<Core::Geometry::Point> Core::Geometry::GetIntersectionLineSegment(const Core::Geometry::Line & line, const Core::Geometry::Rect & rect)
+std::vector< Core::Geometry::LineSegment > Core::Geometry::GetIntersectionLineSegment(const Core::Geometry::Line & line, const Core::Geometry::Rect & rect)
 {
+	if ( !line.IsHorizontal() && !line.IsVertical() )
+	{
+		std::vector< Point > const points1 = GetPointOnLineByOrdinate( line, rect.GetBottomY() );
+		std::vector< Point > const points2 = GetPointOnLineByOrdinate( line, rect.GetTopY() );
 
+		std::vector< Point > const points3 = GetPointOnLineByAbscissa( line, rect.GetLeftX() );
+		std::vector< Point > const points4 = GetPointOnLineByAbscissa( line, rect.GetRightX() );
+
+		if ( points1.size() != 1 || points2.size() != 1 || points3.size() != 1 || points4.size() != 1 )
+		{
+			throw std::logic_error( "ERROR : a non-horizontal and non-vertical line has !=1 point with the given ordinate or abscissa.\n" );
+		}
+
+		Point const p1 = std::min( points1[ 0 ], points2[ 0 ] );
+		Point const p2 = std::max( points1[ 0 ], points2[ 0 ] );
+		Point const p3 = std::min( points3[ 0 ], points4[ 0 ] );
+		Point const p4 = std::max( points3[ 0 ], points4[ 0 ] );
+
+		if ( p1 <= p3 )
+		{
+			if ( p2 < p3 )
+			{
+				return std::vector< LineSegment >();
+			}
+			else
+			{
+				return std::vector< LineSegment >{ LineSegment( p3, std::min( p2, p4 ) ) };
+			}
+		}
+		else
+		{
+			if ( p4 < p1 )
+			{
+				return std::vector< LineSegment >();
+			}
+			else
+			{
+				return std::vector< LineSegment >{ LineSegment( p1, std::min( p4, p2 ) ) };
+			}
+		}
+	}
+	else if ( line.IsHorizontal() )
+	{
+		double const y = line.P1().Y();
+
+		if ( y < rect.GetBottomY() || y > rect.GetTopY() )
+		{
+			return std::vector< LineSegment >();
+		}
+
+		return std::vector< LineSegment >{ LineSegment( Point( rect.GetLeftX(), y ), Point( rect.GetRightX(), y ) ) };
+	}
+	else if ( line.IsVertical() )
+	{
+		double const x = line.P1().X();
+
+		if ( x < rect.GetLeftX() || x > rect.GetRightX() )
+		{
+			return std::vector< LineSegment >();
+		}
+
+		return std::vector< LineSegment >{ LineSegment( Point( x, rect.GetBottomY() ), Point( x, rect.GetTopY() ) ) };
+	}
+
+	throw std::logic_error( "ERROR : a line is non-horizontal, non-vertical and even non-sloping.\n" );
+}
+
+std::vector<Core::Geometry::Point> Core::Geometry::GetPointOnLineByOrdinate(const Core::Geometry::Line & line, double y)
+{
+	if ( line.IsHorizontal() )
+	{
+		if ( line.P1().Y() == y )
+		{
+			throw std::logic_error( "ERROR : horizontal line ordinate = the argument ordinate.\n" );
+		}
+
+		return std::vector< Point >();
+	}
+
+	double const x1 = line.P1().X();
+	double const y1 = line.P1().Y();
+	double const x2 = line.P2().X();
+	double const y2 = line.P2().Y();
+
+	double const x0 = x1 - ( y1 - y ) * ( x1 - x2 )/( y1 - y2 );
+
+	return std::vector< Point >{ Point( x0, y ) };
+}
+
+std::vector<Core::Geometry::Point> Core::Geometry::GetPointOnLineByAbscissa(const Core::Geometry::Line & line, double x)
+{
+	if ( line.IsVertical() )
+	{
+		if ( line.P1().X() == x )
+		{
+			throw std::logic_error( "ERROR : vertical line abscissa = the argument abscissa.\n" );
+		}
+
+		return std::vector< Point >();
+	}
+
+	double const x1 = line.P1().X();
+	double const y1 = line.P1().Y();
+	double const x2 = line.P2().X();
+	double const y2 = line.P2().Y();
+
+	double const y0 = y1 - ( x1 - x ) * ( y1 - y2 )/( x1 - x2 );
+
+	return std::vector< Point >{ Point( x, y0 ) };
+}
+
+bool Core::Geometry::operator<(const Core::Geometry::Point & p1, const Core::Geometry::Point & p2)
+{
+	if ( p1.X() == p2.X() )
+	{
+		return p1.Y() < p2.Y();
+	}
+
+	return p1.X() < p2.X();
+}
+
+bool Core::Geometry::operator>(const Core::Geometry::Point & p1, const Core::Geometry::Point & p2)
+{
+	if ( p1.X() == p2.X() )
+	{
+		return p1.Y() > p2.Y();
+	}
+
+	return p1.X() > p2.X();
+}
+
+bool Core::Geometry::operator<=(const Core::Geometry::Point & p1, const Core::Geometry::Point & p2)
+{
+	return !( p1 > p2 );
+}
+
+bool Core::Geometry::operator>=(const Core::Geometry::Point & p1, const Core::Geometry::Point & p2)
+{
+	return !( p1 < p2 );
+}
+
+Core::Geometry::Rect::Rect(const Core::Geometry::Point & p1, const Core::Geometry::Point & p2)
+	: m_center( GetMidpoint( p1, p2 ) ),
+	  m_width( std::abs( p1.X() - p2.X() ) ),
+	  m_height( std::abs( p1.Y() - p2.Y() ) )
+{
+	if ( p1.X() == p2.X() || p1.Y() == p2.Y() )
+	{
+		throw std::invalid_argument( "ERROR : \n." );
+	}
 }

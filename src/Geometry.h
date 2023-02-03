@@ -33,6 +33,11 @@ namespace Core
             double m_y;
         };
 
+		bool operator<( Point const & p1, Point const & p2 );
+		bool operator>( Point const & p1, Point const & p2 );
+		bool operator<=( Point const & p1, Point const & p2 );
+		bool operator>=( Point const & p1, Point const & p2 );
+
 		class Vector
 		{
 		public:
@@ -59,12 +64,17 @@ namespace Core
 		class Rect
 		{
 		public:
-			Rect( Point const &, Point const & );
+			Rect( Point const & p1, Point const & p2 );
 
-			double GetTopY() const;
-			double GetBottomY() const;
-			double GetLeftX() const;
-			double GetRightX() const;
+			double GetTopY() const { return m_center.Y() + m_height / 2; }
+			double GetBottomY() const { return m_center.Y() - m_height / 2; }
+			double GetLeftX() const { return m_center.X() - m_width / 2; }
+			double GetRightX() const { return m_center.X() + m_width / 2; }
+
+		private:
+			Point const m_center;
+			double const m_width;
+			double const m_height;
 		};
 
         class LineSegment
@@ -96,6 +106,9 @@ namespace Core
 			Point P1() const { return m_p1; }
 			Point P2() const { return m_p2; }
 
+			bool IsHorizontal() const { return m_p1.Y() == m_p2.Y(); }
+			bool IsVertical() const { return m_p1.X() == m_p2.X(); }
+
 		private:
 			Point m_p1;
 			Point m_p2;
@@ -114,14 +127,7 @@ namespace Core
 		private:
 			Point m_center;
 			double m_radius;
-        };
-
-        class IntersectionData
-        {
-        public:
-            //std::vector< Point > const & GetPoints() const;
-
-        };
+		};
 
 		template < typename T >
 		class Triple
@@ -159,7 +165,9 @@ namespace Core
         Point GetPerpendicularBase( Point const & source, Point const & p1, Point const & p2 );
         Point GetPointOnLineSegment( Point const & p1, Point const & p2, double ratio );
 
-		std::vector< Point > GetIntersectionLineSegment( Line const & line, Rect const & rect );
+		std::vector< Point > GetPointOnLineByOrdinate( Line const & line, double y );
+		std::vector< Point > GetPointOnLineByAbscissa( Line const & line, double x );
+		std::vector< LineSegment > GetIntersectionLineSegment( Line const & line, Rect const & rect );
 		std::vector< Point > GetIntersectionPoints( LineSegment const &, LineSegment const & );
 		std::vector< Point > GetIntersectionPoints( Line const &, Line const &, Rect const & boundingBox );
 		std::vector< Point > GetIntersectionPoints( Circle const &, Line const & );

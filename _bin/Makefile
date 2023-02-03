@@ -11,7 +11,7 @@ EXECUTABLES=gc_test
 
 
 
-all : core core_tests
+all : core core_tests gc_test
 
 core : $(CORE_OBJECTS)
 

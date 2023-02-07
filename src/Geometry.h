@@ -53,6 +53,7 @@ namespace Core
 
 			double X() const { return m_x; }
 			double Y() const { return m_y; }
+			double GetNorm() const;
 		private:
 			double const m_x;
 			double const m_y;
@@ -60,6 +61,8 @@ namespace Core
 
 		Point operator+( Point const &, Vector const & );
 		Point operator-( Point const &, Vector const & );
+		Vector operator*( Vector const & v, double d );
+		Vector operator*( double d, Vector const & v );
 
 		class Rect
 		{
@@ -124,6 +127,9 @@ namespace Core
 			Point GetCenter() const { return m_center; }
 			double GetRadius() const { return m_radius; }
 
+			bool operator==( Circle const & rhs ) const;
+			bool operator!=( Circle const & rhs ) const { return !( *this == rhs ); }
+
 		private:
 			Point m_center;
 			double m_radius;
@@ -154,24 +160,28 @@ namespace Core
 		static double const PI = 3.14159265;
 
 		double GetAbsoluteAngle( Vector const & );
-		//Point GetIntersectionPoints( Line const &, Line const & );
+		Vector GetNormal( Vector const & v );
 		bool LineSeparatesPoints( Line const &, Point const &, Point const & );
 		bool VectorIsBetweenTwoOthers( Vector const & v, Vector const & v1, Vector const & v2 );
 		Triple< double > GetGeneralCoefficients( Line const & );
 		bool PointIsBetweenTwoOthers( Point const & p, Point const & p1, Point const & p2 );
 
-
         Point GetMidpoint( Point const &, Point const & );
         Point GetPerpendicularBase( Point const & source, Point const & p1, Point const & p2 );
-        Point GetPointOnLineSegment( Point const & p1, Point const & p2, double ratio );
+		Point GetPointOnLineSegment( Point const & p1, Point const & p2, double ratioOfDistancesToEnds );
+		Point GetPointOnLine( Point const & p1, Point const & p2, double ratio );
+		double GetDistance( Point const & p1, Point const & p2 );
 
 		std::vector< Point > GetPointOnLineByOrdinate( Line const & line, double y );
 		std::vector< Point > GetPointOnLineByAbscissa( Line const & line, double x );
 		std::vector< LineSegment > GetIntersectionLineSegment( Line const & line, Rect const & rect );
+		std::vector< Point > GetIntersectionPoints( const Line &, const Line &, bool forced );
 		std::vector< Point > GetIntersectionPoints( LineSegment const &, LineSegment const & );
 		std::vector< Point > GetIntersectionPoints( Line const &, Line const &, Rect const & boundingBox );
+		std::vector< Point > GetIntersectionPoints( Line const & line, LineSegment const & ls );
 		std::vector< Point > GetIntersectionPoints( Circle const &, Line const & );
 		std::vector< Point > GetIntersectionPoints( Circle const &, LineSegment const & );
+		std::vector< Point > GetIntersectionPoints( Circle const & c1, Circle const & c2 );
 
     }
 

@@ -118,20 +118,12 @@ Point Core::Geometry::GetPerpendicularBase( Point const & source, Point const & 
 
 Point Core::Geometry::GetPointOnLineSegment( Point const & p1, Point const & p2, double ratio )
 {
-    if ( ratio == -1 )
+	if ( ratio <= 0 )
     {
-        throw std::invalid_argument( "Ratio can't equal -1!\n" );
+		throw std::invalid_argument( "ERROR : ratio <= 0.\n" );
     }
 
-    double const x1 = p1.X();
-    double const y1 = p1.Y();
-    double const x2 = p2.X();
-    double const y2 = p2.Y();
-
-    double const x0 = ( x1 + x2 * ratio ) / ( ratio + 1 );
-    double const y0 = ( y1 + y2 * ratio ) / ( ratio + 1 );
-
-    return Point( x0, y0 );
+	return GetPointOnLine( p1, p2, ratio );
 }
 
 std::vector< Point > Core::Geometry::GetIntersectionPoints( const Core::Geometry::LineSegment & ls1, const Core::Geometry::LineSegment & ls2 )
@@ -142,36 +134,7 @@ std::vector< Point > Core::Geometry::GetIntersectionPoints( const Core::Geometry
 		return std::vector< Point >();
 	}
 
-	double const x1 = ls1.P1().X();
-	double const y1 = ls1.P1().Y();
-	double const x2 = ls1.P2().X();
-	double const y2 = ls1.P2().Y();
-
-	double const x3 = ls2.P1().X();
-	double const y3 = ls2.P1().Y();
-	double const x4 = ls2.P2().X();
-	double const y4 = ls2.P2().Y();
-
-	if ( x1 == x2 )
-	{
-		double const y = y4 - ( ( y4 - y3 ) / ( x4 - x3 ) ) * ( x4 - x1 );
-
-		return std::vector< Point > { Point( x1, y ) };
-	}
-
-	if ( x3 == x4 )
-	{
-		double const y = y2 - ( ( y2 - y1 ) / ( x2 - x1 ) ) * ( x2 - x3 );
-
-		return std::vector< Point > { Point( x3, y ) };
-	}
-
-	double const x = ( ( x1 * y2 - x2 * y1 ) / ( x2 - x1 ) - ( x3 * y4 - x4 * y3 ) / ( x4 - x3 ) ) /
-					 ( ( y2 - y1 ) / ( x2 - x1 ) - ( y4 - y3 ) / ( x4 - x3 ) );
-
-	double const y = x * ( y2 - y1 ) / ( x2 - x1 ) - ( x1 * y2 - x2 * y1 ) / ( x2 - x1 );
-
-	return std::vector< Point > { Point( x, y ) };
+	return GetIntersectionPoints( Line( ls1 ), Line( ls2 ), true );
 }
 
 std::vector<Core::Geometry::Point> Core::Geometry::GetIntersectionPoints( const Core::Geometry::Circle & circle, const Core::Geometry::LineSegment & ls )
@@ -510,4 +473,149 @@ Core::Geometry::Rect::Rect(const Core::Geometry::Point & p1, const Core::Geometr
 	{
 		throw std::invalid_argument( "ERROR : \n." );
 	}
+}
+
+std::vector<Core::Geometry::Point> Core::Geometry::GetIntersectionPoints(const Core::Geometry::Line & line, const Core::Geometry::LineSegment & ls)
+{
+	if ( !LineSeparatesPoints( line, ls.P1(), ls.P2() ) )
+	{
+		return std::vector< Point >();
+	}
+
+	return GetIntersectionPoints( line, Line( ls ), true );
+}
+
+std::vector<Core::Geometry::Point> Core::Geometry::GetIntersectionPoints(const Core::Geometry::Line & line1, const Core::Geometry::Line & line2, bool forced)
+{
+	if ( !forced )
+	{
+		throw std::invalid_argument( "ERROR : \n" );
+	}
+
+	double const x1 = line1.P1().X();
+	double const y1 = line1.P1().Y();
+	double const x2 = line1.P2().X();
+	double const y2 = line1.P2().Y();
+
+	double const x3 = line2.P1().X();
+	double const y3 = line2.P1().Y();
+	double const x4 = line2.P2().X();
+	double const y4 = line2.P2().Y();
+
+	if ( x1 == x2 )
+	{
+		double const y = y4 - ( ( y4 - y3 ) / ( x4 - x3 ) ) * ( x4 - x1 );
+
+		return std::vector< Point > { Point( x1, y ) };
+	}
+
+	if ( x3 == x4 )
+	{
+		double const y = y2 - ( ( y2 - y1 ) / ( x2 - x1 ) ) * ( x2 - x3 );
+
+		return std::vector< Point > { Point( x3, y ) };
+	}
+
+	double const x = ( ( x1 * y2 - x2 * y1 ) / ( x2 - x1 ) - ( x3 * y4 - x4 * y3 ) / ( x4 - x3 ) ) /
+					 ( ( y2 - y1 ) / ( x2 - x1 ) - ( y4 - y3 ) / ( x4 - x3 ) );
+
+	double const y = x * ( y2 - y1 ) / ( x2 - x1 ) - ( x1 * y2 - x2 * y1 ) / ( x2 - x1 );
+
+	return std::vector< Point > { Point( x, y ) };
+}
+
+std::vector<Core::Geometry::Point> Core::Geometry::GetIntersectionPoints(const Core::Geometry::Circle & c1, const Core::Geometry::Circle & c2)
+{
+	if ( c1 == c2 )
+	{
+		throw std::invalid_argument( "ERROR: intersection of two identic circles\n" );
+	}
+
+	Point const center1 = c1.GetCenter();
+	Point const center2 = c2.GetCenter();
+	double const r1 = c1.GetRadius();
+	double const r2 = c2.GetRadius();
+	double const d = GetDistance( center1, center2 );
+
+	if ( d < std::abs( r1 - r2 ) || d > r1 + r2 )
+	{
+		return std::vector< Point >();
+	}
+	else if ( r1 + r2 == d )
+	{
+		return std::vector< Point >{ GetPointOnLineSegment( center1, center2, r1 / r2 ) };
+	}
+	else if ( std::abs( r1 - r2 ) == d )
+	{
+		if ( r1 > r2 )
+		{
+			return std::vector< Point >{ GetPointOnLine( center1, center2, -r1 / r2 ) };
+		}
+		else if ( r2 > r1 )
+		{
+			return std::vector< Point >{ GetPointOnLine( center2, center1, -r2 / r1 ) };
+		}
+
+		throw std::logic_error( "ERROR: intersection of two identic circles\n" );
+	}
+
+	double const d1 = ( ( r1 * r1 - r2 * r2 ) / d + d ) / 2;
+	Point const p0 = GetPointOnLine( center1, center2, d1 / ( d - d1 ) );
+	Vector const n = GetNormal( Vector( center1, center2 ) );
+	double const h1 = sqrt( r1 * r1 - d1 * d1 );
+
+	return std::vector< Point >{ p0 + n * h1, p0 - n * h1 };
+}
+
+double Core::Geometry::GetDistance(const Core::Geometry::Point & p1, const Core::Geometry::Point & p2)
+{
+	double const dx = p1.X() - p2.X();
+	double const dy = p1.Y() - p2.Y();
+
+	return std::sqrt( dx * dx + dy * dy );
+}
+
+Core::Geometry::Vector Core::Geometry::GetNormal(const Core::Geometry::Vector & v)
+{
+	double const norm = v.GetNorm();
+
+	return Vector( -v.Y() / norm, v.X() / norm );
+}
+
+double Core::Geometry::Vector::GetNorm() const
+{
+	return std::sqrt( m_x * m_x + m_y * m_y );
+}
+
+Core::Geometry::Vector Core::Geometry::operator*(const Core::Geometry::Vector & v, double d)
+{
+	return Vector( d * v.X(), d * v.Y() );
+}
+
+Core::Geometry::Vector Core::Geometry::operator*(double d, const Core::Geometry::Vector & v)
+{
+	return v * d;
+}
+
+Core::Geometry::Point Core::Geometry::GetPointOnLine(const Core::Geometry::Point & p1, const Core::Geometry::Point & p2, double ratio)
+{
+	if ( ratio == -1 )
+	{
+		throw std::invalid_argument( "ERROR : ratio == -1.\n" );
+	}
+
+	double const x1 = p1.X();
+	double const y1 = p1.Y();
+	double const x2 = p2.X();
+	double const y2 = p2.Y();
+
+	double const x = ( x1 + x2 * ratio ) / ( ratio + 1 );
+	double const y = ( y1 + y2 * ratio ) / ( ratio + 1 );
+
+	return Point( x, y );
+}
+
+bool Core::Geometry::Circle::operator==(const Core::Geometry::Circle & rhs) const
+{
+	return m_center == rhs.m_center && m_radius == rhs.m_radius;
 }

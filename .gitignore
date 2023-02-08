@@ -1,4 +1,5 @@
 /_bin/*
 /GBCore.*
+*.autosave
 
 !_bin/Makefile

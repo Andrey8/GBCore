@@ -63,11 +63,13 @@ namespace Core
         {}
 
         std::list< GCPoint const * > GetBasePoints() const override;
-        std::ostream & operator<<( std::ostream & os ) const override;
 
         GCPoint const * P1() const { return m_p1; }
         GCPoint const * P2() const { return m_p2; }
+		Geometry::LineSegment GetLS() const { return Geometry::LineSegment( m_p1->GetPoint(), m_p2->GetPoint() ); }
 
+		// Test
+		std::ostream & operator<<( std::ostream & os ) const override;
     private:
         GCPoint const * m_p1;
         GCPoint const * m_p2;
@@ -176,6 +178,23 @@ namespace Core
         GCPoint const * m_p2;
         double const m_distancesRatio;
     };
+
+	class TwoLSIntersectionPorperty : public PointProperty
+	{
+	public:
+		TwoLSIntersectionPorperty( GCLineSegment * ls1, GCLineSegment * ls2 )
+			: m_ls1( ls1 ), m_ls2( ls2 )
+		{}
+
+		virtual void ModifyGCContainer(GCContainer &, const GCPoint *) const override;
+		virtual Point CalculateAndGetPoint() const override;
+
+		// Test
+		virtual std::string GetInfo() const override;
+	private:
+		GCLineSegment * m_ls1;
+		GCLineSegment * m_ls2;
+	};
 
     // class IntersectionPointProperty : public PointProperty
     // {

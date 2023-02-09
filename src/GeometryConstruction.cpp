@@ -202,11 +202,29 @@ std::string Core::ToString( Point const & point )
 
 
 
+void Core::TwoLSIntersectionPorperty::ModifyGCContainer(Core::GCContainer & container, const Core::GCPoint * gcpoint ) const
+{
+	container.AddUnitToBody( gcpoint, m_ls1 );
+	container.AddUnitToBody( gcpoint, m_ls2 );
+}
 
+std::string Core::TwoLSIntersectionPorperty::GetInfo() const
+{
+	std::ostringstream oss;
 
+	oss << "Intersection point of " << m_ls1 << " and " << m_ls2;
 
+	return oss.str();
+}
 
+Core::Point Core::TwoLSIntersectionPorperty::CalculateAndGetPoint() const
+{
+	auto ipoints = Geometry::GetIntersectionPoints( m_ls1->GetLS(), m_ls2->GetLS() );
 
+	if ( ipoints.empty() )
+	{
+		throw std::logic_error( "ERROR : line segments don't intersect.\n" );
+	}
 
-
-
+	return ipoints.front();
+}

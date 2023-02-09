@@ -54,7 +54,9 @@ void Tests::CoreTests::TestGeometryConstruction_PappusConstruction()
 	gc.Add( &i1i2 );
 
 	std::cout << gc;
-	//std::cout << "Distance : " << Geometry::GetDistance( i1->GetPoint())
+	std::cout << "Distance : " << Core::Geometry::GetDistance(
+					 i3->GetPoint(),
+					 Core::Geometry::Line( i1->GetPoint(), i2->GetPoint() ) );
 
 	//gc.MovePointTo( &a, Point( 0, 3 ) );
 

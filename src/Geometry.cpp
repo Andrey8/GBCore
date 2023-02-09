@@ -634,5 +634,5 @@ double Core::Geometry::GetAngleBetweenVectors(const Core::Geometry::Vector & v1,
 {
 	double const scalarProduct = v1.X() * v2.X() + v1.Y() * v2.Y();
 
-	return scalarProduct / ( v1.GetNorm() * v2.GetNorm() );
+	return std::acos( scalarProduct / ( v1.GetNorm() * v2.GetNorm() ) );
 }

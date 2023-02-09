@@ -619,3 +619,20 @@ bool Core::Geometry::Circle::operator==(const Core::Geometry::Circle & rhs) cons
 {
 	return m_center == rhs.m_center && m_radius == rhs.m_radius;
 }
+
+double Core::Geometry::GetDistance(const Core::Geometry::Point & p, const Core::Geometry::Line & line)
+{
+	Point const p1 = line.P1();
+	Point const p2 = line.P2();
+
+	double const angle = GetAngleBetweenVectors( Vector( p1, p ), Vector( p1, p2 ) );
+
+	return GetDistance( p1, p ) * std::sin( angle );
+}
+
+double Core::Geometry::GetAngleBetweenVectors(const Core::Geometry::Vector & v1, const Core::Geometry::Vector & v2)
+{
+	double const scalarProduct = v1.X() * v2.X() + v1.Y() * v2.Y();
+
+	return scalarProduct / ( v1.GetNorm() * v2.GetNorm() );
+}

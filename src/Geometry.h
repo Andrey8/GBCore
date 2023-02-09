@@ -161,6 +161,7 @@ namespace Core
 
 		double GetAbsoluteAngle( Vector const & );
 		Vector GetNormal( Vector const & v );
+		double GetAngleBetweenVectors( Vector const & v1, Vector const & v2 );
 		bool LineSeparatesPoints( Line const &, Point const &, Point const & );
 		bool VectorIsBetweenTwoOthers( Vector const & v, Vector const & v1, Vector const & v2 );
 		Triple< double > GetGeneralCoefficients( Line const & );
@@ -171,6 +172,7 @@ namespace Core
 		Point GetPointOnLineSegment( Point const & p1, Point const & p2, double ratioOfDistancesToEnds );
 		Point GetPointOnLine( Point const & p1, Point const & p2, double ratio );
 		double GetDistance( Point const & p1, Point const & p2 );
+		double GetDistance( Point const & p, Line const & line );
 
 		std::vector< Point > GetPointOnLineByOrdinate( Line const & line, double y );
 		std::vector< Point > GetPointOnLineByAbscissa( Line const & line, double x );

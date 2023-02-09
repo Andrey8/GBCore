@@ -212,7 +212,7 @@ std::string Core::TwoLSIntersectionPorperty::GetInfo() const
 {
 	std::ostringstream oss;
 
-	oss << "Intersection point of " << m_ls1 << " and " << m_ls2;
+	oss << "Intersection point of " << *m_ls1 << " and " << *m_ls2;
 
 	return oss.str();
 }

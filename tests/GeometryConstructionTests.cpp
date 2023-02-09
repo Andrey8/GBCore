@@ -33,24 +33,28 @@ void Tests::CoreTests::TestGeometryConstruction_PappusConstruction()
 	GCLineSegment ca1( c, &a1 );
 	gc.Add( &ac1 );
 	gc.Add( &ca1 );
-	//GCPoint const * i1 = gc.CreateIntersectionPoints( &ac1, &ca1 ).GetPoints().first();
+	auto intersectionProp1 = new Core::TwoLSIntersectionPorperty( &ac1, &ca1 );
+	GCPoint const * i1 = gc.CreatePointByProperty( intersectionProp1 );
 
 	GCLineSegment cb1( c, &b1 );
 	GCLineSegment bc1( &b, c1 );
 	gc.Add( &cb1 );
 	gc.Add( &bc1 );
-	//GCPoint const * i2 = gc.CreateIntersectionPoints( &cb1, &bc1 ).GetPoints().first();
+	auto intersectionProp2 = new Core::TwoLSIntersectionPorperty( &cb1, &bc1 );
+	GCPoint const * i2 = gc.CreatePointByProperty( intersectionProp2 );
 
 	GCLineSegment ab1( &a, &b1 );
 	GCLineSegment ba1( &b, &a1 );
 	gc.Add( &ab1 );
 	gc.Add( &ba1 );
-	//GCPoint const * i3 = gc.CreateIntersectionPoints( &ab1, &ba1 ).GetPoints().first();
+	auto intersectionProp3 = new Core::TwoLSIntersectionPorperty( &ab1, &ba1 );
+	GCPoint const * i3 = gc.CreatePointByProperty( intersectionProp3 );
 
-	// GCLineSegment i1i2;
-	// gc.Add( &i1i2 );
+	GCLineSegment i1i2( i1, i2 );
+	gc.Add( &i1i2 );
 
 	std::cout << gc;
+	//std::cout << "Distance : " << Geometry::GetDistance( i1->GetPoint())
 
 	//gc.MovePointTo( &a, Point( 0, 3 ) );
 

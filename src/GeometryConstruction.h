@@ -75,12 +75,41 @@ namespace Core
         GCPoint const * m_p2;
     };
 
-    // class GCCircle : public GCFigure
-    // {
-    // public:
-    // 	GCCircle( Point const * center, double radius );
+	class GCLine : public GCFigure
+	{
+	public:
+		GCLine( GCPoint const * p1, GCPoint const * p2 )
+			: m_p1( p1 ), m_p2( p2 )
+		{}
 
-    // };
+		std::list< GCPoint const * > GetBasePoints() const override;
+
+		GCPoint const * P1() const { return m_p1; }
+		GCPoint const * P2() const { return m_p2; }
+		Geometry::Line GetLine() const { return Geometry::Line( m_p1->GetPoint(), m_p2->GetPoint() ); }
+
+		// Test
+		std::ostream & operator<<( std::ostream & os ) const override;
+	private:
+		GCPoint const * m_p1;
+		GCPoint const * m_p2;
+	};
+
+	 class GCCircle : public GCFigure
+	 {
+	 public:
+		GCCircle( GCPoint const * center, double radius )
+			: m_center( center ), m_r( radius )
+		{}
+
+		virtual std::list<const GCPoint *> GetBasePoints() const override { return std::list< GCPoint const * >{ m_center }; }
+
+		// Test
+		std::ostream & operator<<( std::ostream & os ) const override;
+	 private:
+		GCPoint const * m_center;
+		double const m_r;		
+	 };
 
 
 
@@ -98,11 +127,23 @@ namespace Core
         virtual std::string GetInfo() const = 0;
     };
 
-    class FigureProperty
+	class FigureProperty
     {
     public:
+		virtual void ModifyGCContainer( GCContainer & ) const;
 
+		//std::list< GCItem > GetBaseItems() const;
+
+		// Test
+		virtual std::string GetInfo();
     };
+
+	class ParallelLineThroughPointProperty : public FigureProperty
+	{
+	public:
+		ParallelLineThroughPointProperty( GCPoint * p, GCLine * line );
+
+	};
 
     // template < typename BaseType >
     // class CopyCreator
@@ -211,25 +252,95 @@ namespace Core
 
 
 
+
+
+	// Used by GC
+	class AbstractFigureCreator
+	{
+	public:
+		virtual GCFigure const * Create() const = 0;
+
+		virtual std::vector< GCPoint const * > GetBasePoints() const { return std::vector< GCPoint const * >(); }
+		virtual std::vector< GCFigure const * > GetBaseFigures() const { return std::vector< GCFigure const * >(); }
+
+		// Test
+		virtual std::string GetFigureInfo() const = 0;
+	};
+
+	class ParallelLineCreator : public AbstractFigureCreator
+	{
+	public:
+		ParallelLineCreator( GCPoint const * p, GCLine const * line )
+			: m_p( p ), m_line( line )
+		{}
+
+		virtual GCFigure const * Create() const override
+		{
+			Geometry::Vector const v( m_line->P1()->GetPoint(), m_line->P2()->GetPoint() );
+			GCPoint * p3 = new GCPoint( m_p->GetPoint() + v );
+
+			return new GCLine( m_p, p3 );
+		}
+
+		virtual std::vector< GCPoint const * > GetBasePoints() const override { return std::vector< GCPoint const * >{ m_p }; }
+		virtual std::vector< GCFigure const * > GetBaseFigures() const override { return std::vector< GCFigure const * >{ m_line }; }
+
+		// Test
+		virtual std::string GetFigureInfo() const;
+	private:
+		GCPoint const * m_p;
+		GCLine const * m_line;
+	};
+
+	class CircumcircleCreator : public AbstractFigureCreator
+	{
+	public:
+		CircumcircleCreator( GCPoint const * p1, GCPoint const * p2, GCPoint const * p3 )
+			: m_p1( p1 ), m_p2( p2 ), m_p3( p3 )
+		{}
+
+		virtual const GCFigure *Create() const override;
+
+		virtual std::vector<const GCPoint *> GetBasePoints() const override { return std::vector< GCPoint const * >{ m_p1, m_p2, m_p3 }; }
+
+		// Test
+		virtual std::string GetFigureInfo() const;
+	private:
+		GCPoint const * m_p1;
+		GCPoint const * m_p2;
+		GCPoint const * m_p3;
+	};
+
+	class PerpendicularBisectorCreator : public AbstractFigureCreator
+	{
+	private:
+		enum class Mode { FromTwoPoints, FromLineSegment };
+	public:
+		PerpendicularBisectorCreator( GCLineSegment const * ls );
+		PerpendicularBisectorCreator( GCPoint const * p1, GCPoint const * p2 );
+
+		virtual const GCFigure *Create() const override;
+		virtual std::vector<const GCPoint *> GetBasePoints() const override;
+		virtual std::vector<const GCFigure *> GetBaseFigures() const override;
+		virtual std::string GetFigureInfo() const override;
+
+	private:
+		GCLineSegment const * m_ls;
+		GCPoint const * m_p1;
+		GCPoint const * m_p2;
+		Mode const m_mode;
+	};
+
+
+
     class GeometryConstruction
-    {
-    private:
-        // class PointPropertyData
-        // {
-        // public:
-        // 	PointPropertyData( PointProperty const & property )
-        // 		: m_property( property )
-        // 	{}
-
-        // private:
-        // 	PointProperty const & m_property;
-        // };
-
+	{
     public:
         void Add( GCPoint const * );
         void Add( GCFigure const * );
         GCPoint const * CreatePointByProperty( PointProperty const * );
-        GCFigure const * CreateFigureByProperty( FigureProperty const & );
+		GCFigure const * CreateFigureByProperty( FigureProperty const * );
+		GCFigure const * CreateFigureByCreator( AbstractFigureCreator const * fcreator );
         //IntersectionData CreateIntersectionPoints( GCFigure const *, GCFigure const * );
 
         // void Attach( GCPoint const *, GCFigure const * );
@@ -244,11 +355,16 @@ namespace Core
         ConstructionContainer< GCPoint, GCFigure > m_container;
         std::list< GCPoint const * > m_points;
         std::map< GCPoint const *, PointProperty const * > m_pointsToProperties;
-
+		std::map< GCFigure const *, AbstractFigureCreator const * > m_figuresToBuilders;
+		std::set< GCPoint const * > m_hiddenPoints;
     };
 
 
 
 
+	GCFigure const * CreateParallelLine( GCPoint const * p, GCLine const * line );
+	GCFigure const * CreatePerpendicularLine( GCPoint const * p, GCLine const * line );
+	GCFigure const * CreatePerpendicularBisector( GCPoint const * p1, GCPoint const * p2 );
+	GCFigure const * CreateCircumcircle( GCPoint const * p1, GCPoint const * p2, GCPoint const * p3 );
 
 }

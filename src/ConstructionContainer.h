@@ -5,6 +5,7 @@
 #include <set>
 #include <stdexcept>
 #include <algorithm>
+#include <vector>
 
 #include <iostream>
 
@@ -27,7 +28,7 @@ namespace Core
         public:
             void AddBaseBody( Body const * body ) { m_baseBodies.push_back( body ); }
             void AddSlaveBody( Body const * body ) { m_slaveBodies.push_back( body ); }
-            void RemoveBody( Body const * );
+			void RemoveBody( Body const * );
 
             std::list< Body const * > GetAllBodies() const;
             std::list< Body const * > const & GetBaseBodies() const { return m_baseBodies; }
@@ -44,6 +45,8 @@ namespace Core
         public:
             void AddBaseUnit( Unit const * unit ) { m_baseUnits.push_back( unit ); }
             void AddSlaveUnit( Unit const * unit ) { m_slaveUnits.push_back( unit ); }
+			void AddBaseBody( Body const * body ) { m_baseBodies.push_back( body ); }
+			void AddSlaveBody( Body const * body ) { m_slaveBodies.push_back( body ); }
             void RemoveUnit( Unit const * );
 
             std::list< Unit const * > GetAllUnits() const;
@@ -54,6 +57,9 @@ namespace Core
         private:
             std::list< Unit const * > m_baseUnits;
             std::list< Unit const * > m_slaveUnits;
+
+			std::list< Body const * > m_baseBodies;
+			std::list< Body const * > m_slaveBodies;
         };
 
     public:
@@ -62,6 +68,9 @@ namespace Core
         void Add( Unit const * );
         void Remove( Unit const * );
         void Remove( Body const * );
+		void Add( Body const * body,
+				  std::vector< Unit const * > const & baseUnits,
+				  std::vector< Body const * > const & baseBodies );
 
         // // getters
         // std::list< Body * > GetSlaveBodies( Unit const * ) const;
@@ -71,6 +80,7 @@ namespace Core
         std::list< Body const * > GetAllBodies( Unit const * ) const;
         std::list< Unit const * > GetAllUnits( Body const * ) const;
         std::list< Body const * > GetAllBodies() const;
+		std::list< Unit const * > GetAllUnits() const;
         std::list< Unit const * > GetIsolatedUnits() const;
         std::list< Unit const * > GetSlaveUnits( Body const * body ) const { return GetData( body ).GetSlaveUnits(); }
 
@@ -291,8 +301,74 @@ namespace Core
             data.RemoveBody( body );
         }
 
-        m_bodiesToData.erase( body );
-    }
+		m_bodiesToData.erase( body );
+	}
+
+	template < typename Unit, typename Body >
+	void ConstructionContainer< Unit, Body >::Add( Body const * body,
+			  std::vector< Unit const * > const & baseUnits,
+			  std::vector< Body const * > const & baseBodies )
+	{
+		if ( !body )
+		{
+			throw std::invalid_argument( "ERROR : nullptr argument\n" );
+		}
+
+		if ( Contains( body ) )
+		{
+			throw std::invalid_argument( "ERROR : adding an existing body." );
+		}
+
+		BodyData bodyData;
+
+		for ( Unit const * unit : baseUnits )
+		{
+			if ( !unit )
+			{
+				throw std::invalid_argument( "ERROR : nullptr argument\n" );
+			}
+
+			auto unitIter = m_unitsToData.find( unit );
+			if ( unitIter != m_unitsToData.end() )
+			{
+				unitIter->second.AddSlaveBody( body );
+			}
+			else
+			{
+				UnitData data;
+				data.AddSlaveBody( body );
+
+				m_unitsToData.insert( std::make_pair( unit, data ) );
+			}
+
+			bodyData.AddBaseUnit( unit );
+		}
+
+		for ( Body const * bb : baseBodies )
+		{
+			if ( !bb )
+			{
+				throw std::invalid_argument( "ERROR : nullptr argument\n" );
+			}
+
+			auto bodyIter = m_bodiesToData.find( bb );
+			if ( bodyIter != m_bodiesToData.end() )
+			{
+				bodyIter->second.AddSlaveBody( body );
+			}
+			else
+			{
+				BodyData data;
+				data.AddSlaveBody( body );
+
+				m_bodiesToData.insert( std::make_pair( body, data ) );
+			}
+
+			bodyData.AddBaseBody( bb );
+		}
+
+		m_bodiesToData.insert( std::make_pair( body, bodyData ) );
+	}
 
     template < typename Unit, typename Body >
     std::list< Body const * > ConstructionContainer< Unit, Body >::GetAllBodies() const
@@ -304,8 +380,21 @@ namespace Core
             result.push_back( pair.first );
         }
 
-        return result;
-    }
+		return result;
+	}
+
+	template < typename Unit, typename Body >
+	std::list<const Unit *> ConstructionContainer< Unit, Body >::GetAllUnits() const
+	{
+		std::list< Unit const * > result;
+
+		for ( auto const & pair : m_unitsToData )
+		{
+			result.push_back( pair.first );
+		}
+
+		return result;
+	}
 
     template < typename Unit, typename Body >
     std::list< Unit const * > ConstructionContainer< Unit, Body >::GetIsolatedUnits() const

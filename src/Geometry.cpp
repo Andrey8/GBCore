@@ -636,3 +636,51 @@ double Core::Geometry::GetAngleBetweenVectors(const Core::Geometry::Vector & v1,
 
 	return std::acos( scalarProduct / ( v1.GetNorm() * v2.GetNorm() ) );
 }
+
+Core::Geometry::Point Core::Geometry::GetCircumcircleCenter(const Core::Geometry::Point & p1, const Core::Geometry::Point & p2, const Core::Geometry::Point & p3)
+{
+	// throw
+
+	double const x1 = p1.X();
+	double const y1 = p1.Y();
+	double const x2 = p2.X();
+	double const y2 = p2.Y();
+	double const x3 = p3.X();
+	double const y3 = p3.Y();
+
+	double const expr12 = ( x1 * x1 + y1 * y1 - x2 * x2 - y2 * y2 ) / 2;
+	double const expr13 = ( x1 * x1 + y1 * y1 - x3 * x3 - y3 * y3 ) / 2;
+
+	double const x = ( expr12 * ( y1 - y3 ) - expr13 * ( y1 - y2 ) ) / ( ( x1 - x2 ) * ( y1 - y3 ) - ( x1 - x3 ) * ( y1 - y2 ) );
+	double const y = ( expr12 * ( x1 - x3 ) - expr13 * ( x1 - x2 ) ) / ( ( y1 - y2 ) * ( x1 - x3 ) - ( y1 - y3 ) * ( x1 - x2 ) );
+
+	return Point( x, y );
+}
+
+double Core::Geometry::GetCircumcircleRadius(const Core::Geometry::Point & p1, const Core::Geometry::Point & p2, const Core::Geometry::Point & p3)
+{
+	// throw
+
+	double const x1 = p1.X();
+	double const y1 = p1.Y();
+	double const x2 = p2.X();
+	double const y2 = p2.Y();
+	double const x3 = p3.X();
+	double const y3 = p3.Y();
+
+	double const a = sqrt( ( x1 - x2 ) * ( x1 - x2 ) + ( y1 - y2 ) * ( y1 - y2 ) );
+	double const b = sqrt( ( x2 - x3 ) * ( x2 - x3 ) + ( y2 - y3 ) * ( y2 - y3 ) );
+	double const c = sqrt( ( x3 - x1 ) * ( x3 - x1 ) + ( y3 - y1 ) * ( y3 - y1 ) );
+	double const p = ( a + b + c ) / 2;
+	double const s = sqrt( p * ( p - a ) * ( p - b ) * ( p - c ) );
+
+	return ( a * b * c / ( 4 * s ) );
+}
+
+Core::Geometry::Circle Core::Geometry::GetCircumcircle(const Core::Geometry::Point & p1, const Core::Geometry::Point & p2, const Core::Geometry::Point & p3)
+{
+	Point const center = GetCircumcircleCenter( p1, p2, p3 );
+	double const r = GetCircumcircleRadius( p1, p2, p3 );
+
+	return Circle( center, r );
+}

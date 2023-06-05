@@ -6,6 +6,7 @@
 using Point = Core::Geometry::Point;
 using Core::GCPoint;
 using Core::GCLineSegment;
+using Core::GCLine;
 
 
 
@@ -56,7 +57,7 @@ void Tests::CoreTests::TestGeometryConstruction_PappusConstruction()
 	std::cout << gc;
 	std::cout << "Distance : " << Core::Geometry::GetDistance(
 					 i3->GetPoint(),
-					 Core::Geometry::Line( i1->GetPoint(), i2->GetPoint() ) );
+					 Core::Geometry::Line( i1->GetPoint(), i2->GetPoint() ) ) << '\n';
 
 	//gc.MovePointTo( &a, Point( 0, 3 ) );
 
@@ -157,6 +158,29 @@ void Tests::CoreTests::TestGeometryConstruction_Construction2()
 
 // 	return os;
 // }
+
+void Tests::CoreTests::TestGeometryConstruction_Construction3()
+{
+	GCPoint * p1 = new GCPoint( 1, 1 );
+	GCPoint * p2 = new GCPoint( 2, 2 );
+	GCLine * line1 = new GCLine( p1, p2 );
+	GCPoint * p = new GCPoint( 3, 5 );
+
+	Core::GeometryConstruction gc;
+	gc.Add( line1 );
+	gc.Add( p );
+
+	auto line = dynamic_cast< GCLine const * >( gc.CreateFigureByCreator( new Core::ParallelLineCreator( p, line1 ) ) );
+	auto circle = dynamic_cast< Core::GCCircle const * >( gc.CreateFigureByCreator( new Core::CircumcircleCreator( p1, p2, p ) ) );
+	gc.CreateFigureByCreator( new Core::PerpendicularBisectorCreator( p1, p2 ) );
+
+	std::cout << gc;
+	std::cout << *line << '\n';
+	std::cout << *circle << '\n';
+
+
+}
+
 
 
 

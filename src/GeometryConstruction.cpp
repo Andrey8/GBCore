@@ -37,19 +37,52 @@ Core::GCPoint const * Core::GeometryConstruction::CreatePointByProperty( PointPr
 	return gcpoint;
 }
 
+const Core::GCFigure *Core::GeometryConstruction::CreateFigureByProperty(const Core::FigureProperty *)
+{
+
+}
+
+const Core::GCFigure *Core::GeometryConstruction::CreateFigureByCreator(const Core::AbstractFigureCreator * fcreator)
+{
+	GCFigure const * figure = fcreator->Create();
+
+	m_container.Add( figure, fcreator->GetBasePoints(), fcreator->GetBaseFigures() );
+
+	m_figuresToBuilders.insert( std::make_pair( figure, fcreator ) );
+
+	// Hide { basePoints / all GC points }
+	auto basePoints = fcreator->GetBasePoints();
+	auto allPoints = m_container.GetAllUnits();
+
+	auto pointsToHide = Core::Utils::GetSetDifference( basePoints.begin(), basePoints.end(),
+													   allPoints.begin(), allPoints.end() );
+
+	m_hiddenPoints.insert( pointsToHide.begin(), pointsToHide.end() );
+
+	return figure;
+}
+
 std::ostream & Core::operator<<( std::ostream & os, Core::GeometryConstruction const & gc )
 {
-	os << "[GeometryConstruction] :\n";
+	os << "[GeometryConstruction]\n";
 
-	os << '\t' << "Figures :\n";
+	os << "\nFigures :\n";
 	for ( auto gcfigure : gc.m_container.GetAllBodies() )
 	{
-		os << "\t\t" << *gcfigure << '\n';
+		auto it = gc.m_figuresToBuilders.find( gcfigure );
+		if ( it != gc.m_figuresToBuilders.end() )
+		{
+			os << "\t" << it->second->GetFigureInfo() << "\n\n";
 
-		os << "\t\t" << "- Slave points :\n";
+			continue;
+		}
+
+		os << "\t" << *gcfigure << '\n';
+
+		os << "\t" << "- Slave points :\n";
 		for ( GCPoint const * p : gc.m_container.GetSlaveUnits( gcfigure ) )
 		{
-			os << "\t\t\t" << p->GetPoint();
+			os << "\t\t" << p->GetPoint();
 
 			auto iter = gc.m_pointsToProperties.find( p );
 			if ( iter != gc.m_pointsToProperties.end() )
@@ -63,10 +96,14 @@ std::ostream & Core::operator<<( std::ostream & os, Core::GeometryConstruction c
 		os << '\n';
 	}
 
-	os << '\t' << "Single points :\n";
+	os << "Single points :\n";
 	for ( GCPoint const * point : gc.m_container.GetIsolatedUnits() )
 	{
-		os << "\t\t" << point->GetPoint() << '\n';
+		os << "\t" << point->GetPoint() << '\n';
+	}
+	if ( gc.m_container.GetIsolatedUnits().empty() )
+	{
+		os << "\tNone\n";
 	}
 	os << '\n';
 
@@ -180,7 +217,7 @@ std::ostream & Core::operator<<( std::ostream & os, Core::Printable const & prin
 
 std::ostream & Core::operator<<( std::ostream & os, Core::Geometry::Point const & point )
 {
-	os << "Point(" << point.X() << ", " << point.Y() << ")";
+	os << "P(" << point.X() << ", " << point.Y() << ")";
 
 	return os;
 }
@@ -227,4 +264,205 @@ Core::Point Core::TwoLSIntersectionPorperty::CalculateAndGetPoint() const
 	}
 
 	return ipoints.front();
+}
+
+std::list<const Core::GCPoint *> Core::GCLine::GetBasePoints() const
+{
+	std::list< GCPoint const * > result;
+
+	result.push_back( m_p1 );
+	result.push_back( m_p2 );
+
+	return result;
+}
+
+std::ostream &Core::GCLine::operator<<(std::ostream & os) const
+{
+	os << "GCLine[ " << m_p1->GetPoint() << ", " << m_p2->GetPoint() << " ]";
+
+	return os;
+}
+
+const Core::GCFigure *Core::CreateParallelLine(const Core::GCPoint * p, const Core::GCLine * line)
+{
+	Geometry::Vector const v( line->P1()->GetPoint(), line->P2()->GetPoint() );
+	GCPoint * p3 = new GCPoint( p->GetPoint() + v );
+
+	return new GCLine( p, p3 );
+}
+
+const Core::GCFigure *Core::CreatePerpendicularLine(const Core::GCPoint * p, const Core::GCLine * line)
+{
+	Point const perpBase = Geometry::GetPerpendicularBase( p->GetPoint(), line->P1()->GetPoint(), line->P2()->GetPoint() );
+	GCPoint * p3 = new GCPoint( perpBase );
+
+	return new GCLine( p, p3 );
+}
+
+const Core::GCFigure *Core::CreatePerpendicularBisector(const Core::GCPoint * p1, const Core::GCPoint * p2)
+{
+	Point const midpoint = Geometry::GetMidpoint( p1->GetPoint(), p2->GetPoint() );
+	Geometry::Vector const v( p1->GetPoint(), p2->GetPoint() );
+
+	GCPoint * p3 = new GCPoint( midpoint );
+	GCPoint * p4 = new GCPoint( midpoint + Geometry::GetNormal( v ) );
+
+	return new GCLine( p3, p4 );
+}
+
+const Core::GCFigure *Core::CreateCircumcircle(const Core::GCPoint * p1, const Core::GCPoint * p2, const Core::GCPoint * p3)
+{
+
+}
+
+const Core::GCFigure *Core::CircumcircleCreator::Create() const
+{
+	Geometry::Point const p1 = m_p1->GetPoint();
+	Geometry::Point const p2 = m_p2->GetPoint();
+	Geometry::Point const p3 = m_p3->GetPoint();
+
+	GCPoint const * center = new GCPoint( Geometry::GetCircumcircleCenter( p1, p2, p3 ) );
+	double const r = Geometry::GetCircumcircleRadius( p1, p2, p3 );
+
+	return new GCCircle( center, r );
+}
+
+std::string Core::CircumcircleCreator::GetFigureInfo() const
+{
+	std::ostringstream oss;
+
+	oss << "Circumcircle of points " << m_p1->GetPoint() << ", " << m_p2->GetPoint() << ", " << m_p3->GetPoint();
+
+	return oss.str();
+}
+
+std::ostream &Core::GCCircle::operator<<(std::ostream & os) const
+{
+	os << "GCCircle[ center : " << m_center->GetPoint() << ", radius : " << m_r << " ]";
+
+	return os;
+}
+
+std::string Core::ParallelLineCreator::GetFigureInfo() const
+{
+	std::ostringstream oss;
+
+	oss << "Parallel line to " << *m_line << " and through " << m_p->GetPoint();
+
+	return oss.str();
+}
+
+
+Core::PerpendicularBisectorCreator::PerpendicularBisectorCreator(const Core::GCLineSegment * ls)
+	: m_ls( ls ),
+	  m_p1( nullptr ),
+	  m_p2( nullptr ),
+	  m_mode( Mode::FromLineSegment )
+{}
+
+Core::PerpendicularBisectorCreator::PerpendicularBisectorCreator(const Core::GCPoint * p1, const Core::GCPoint * p2)
+	: m_ls( nullptr ),
+	  m_p1( p1 ),
+	  m_p2( p2 ),
+	  m_mode( Mode::FromTwoPoints )
+{}
+
+const Core::GCFigure *Core::PerpendicularBisectorCreator::Create() const
+{
+	Point p1( 0, 0 );
+	Point p2( 0, 0 );
+
+	switch ( m_mode )
+	{
+	case Mode::FromLineSegment :
+	{
+		p1 = m_ls->P1()->GetPoint();
+		p2 = m_ls->P2()->GetPoint();
+
+		break;
+	}
+	case Mode::FromTwoPoints :
+	{
+		p1 = m_p1->GetPoint();
+		p2 = m_p2->GetPoint();
+
+		break;
+	}
+	default :
+	{
+		throw std::logic_error( "" );
+	}
+	}
+
+	Point const midpoint = Geometry::GetMidpoint( p1, p2 );
+	Geometry::Vector const normal = Geometry::GetNormal( Geometry::Vector( p1, p2 ) );
+	Point const p = midpoint + normal;
+
+	return new GCLine( new GCPoint( midpoint ), new GCPoint( p ) );
+}
+
+std::vector<const Core::GCFigure *> Core::PerpendicularBisectorCreator::GetBaseFigures() const
+{
+	switch ( m_mode )
+	{
+	case Mode::FromLineSegment :
+	{
+		return std::vector< GCFigure const * >{ m_ls };
+	}
+	case Mode::FromTwoPoints :
+	{
+		return std::vector< GCFigure const * >();
+	}
+	default :
+	{
+		throw std::logic_error( "" );
+	}
+	}
+}
+
+std::string Core::PerpendicularBisectorCreator::GetFigureInfo() const
+{
+	std::ostringstream oss;
+
+	switch ( m_mode )
+	{
+	case Mode::FromLineSegment :
+	{
+		oss << "Perpendicular bisector for " << *m_ls;
+
+		break;
+	}
+	case Mode::FromTwoPoints :
+	{
+		oss << "Perpendicular bisector between " << m_p1->GetPoint() << " and " << m_p2->GetPoint();
+
+		break;
+	}
+	default :
+	{
+		throw std::logic_error( "" );
+	}
+	}
+
+	return oss.str();
+}
+
+
+std::vector<const Core::GCPoint *> Core::PerpendicularBisectorCreator::GetBasePoints() const
+{
+	switch ( m_mode )
+	{
+	case Mode::FromLineSegment :
+	{
+		return std::vector< GCPoint const * >();
+	}
+	case Mode::FromTwoPoints :
+	{
+		return std::vector< GCPoint const * >{ m_p1, m_p2 };
+	}
+	default :
+	{
+		throw std::logic_error( "" );
+	}
+	}
 }

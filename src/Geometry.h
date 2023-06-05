@@ -173,6 +173,9 @@ namespace Core
 		Point GetPointOnLine( Point const & p1, Point const & p2, double ratio );
 		double GetDistance( Point const & p1, Point const & p2 );
 		double GetDistance( Point const & p, Line const & line );
+		Point GetCircumcircleCenter( Point const & p1, Point const & p2, Point const & p3 );
+		double GetCircumcircleRadius( Point const & p1, Point const & p2, Point const & p3 );
+		Circle GetCircumcircle( Point const & p1, Point const & p2, Point const & p3 );
 
 		std::vector< Point > GetPointOnLineByOrdinate( Line const & line, double y );
 		std::vector< Point > GetPointOnLineByAbscissa( Line const & line, double x );

@@ -12,7 +12,8 @@ int main()
 
 	//Tests::CoreTests::TestGeometryConstruction_Construction1();
 	//Tests::CoreTests::TestGeometryConstruction_Construction2();
-	Tests::CoreTests::TestGeometryConstruction_PappusConstruction();
+	//Tests::CoreTests::TestGeometryConstruction_PappusConstruction();
+	Tests::CoreTests::TestGeometryConstruction_Construction3();
 
 	return 0;
 }

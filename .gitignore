@@ -1,5 +1,7 @@
 /_bin/*
 /GBCore.*
 *.autosave
+.vscode
+ProjectDiscussionNotes
 
 !_bin/Makefile

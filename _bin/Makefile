@@ -2,7 +2,7 @@ CC=g++
 FLAGS=-std=c++11 -Wall
 
 SRC_DIR=../src
-TESTS_DIR=../tests
+TESTS_DIR=../tests/my-tests
 
 CORE_OBJECTS=GeometryConstruction.o Utils.o Geometry.o
 GCTEST_OBJECTS=GeometryConstructionTests.o TestsLauncher.o

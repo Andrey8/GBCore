@@ -339,7 +339,7 @@ namespace Core
         void Add( GCPoint const * );
         void Add( GCFigure const * );
         GCPoint const * CreatePointByProperty( PointProperty const * );
-		GCFigure const * CreateFigureByProperty( FigureProperty const * );
+		//GCFigure const * CreateFigureByProperty( FigureProperty const * );
 		GCFigure const * CreateFigureByCreator( AbstractFigureCreator const * fcreator );
         //IntersectionData CreateIntersectionPoints( GCFigure const *, GCFigure const * );
 
@@ -358,6 +358,8 @@ namespace Core
 		std::map< GCFigure const *, AbstractFigureCreator const * > m_figuresToBuilders;
 		std::set< GCPoint const * > m_hiddenPoints;
     };
+	
+	std::ostream & operator<<( std::ostream & os, GeometryConstruction const & );
 
 
 

@@ -37,11 +37,6 @@ Core::GCPoint const * Core::GeometryConstruction::CreatePointByProperty( PointPr
 	return gcpoint;
 }
 
-const Core::GCFigure *Core::GeometryConstruction::CreateFigureByProperty(const Core::FigureProperty *)
-{
-
-}
-
 const Core::GCFigure *Core::GeometryConstruction::CreateFigureByCreator(const Core::AbstractFigureCreator * fcreator)
 {
 	GCFigure const * figure = fcreator->Create();
@@ -310,10 +305,10 @@ const Core::GCFigure *Core::CreatePerpendicularBisector(const Core::GCPoint * p1
 	return new GCLine( p3, p4 );
 }
 
-const Core::GCFigure *Core::CreateCircumcircle(const Core::GCPoint * p1, const Core::GCPoint * p2, const Core::GCPoint * p3)
-{
+//const Core::GCFigure *Core::CreateCircumcircle(const Core::GCPoint * p1, const Core::GCPoint * p2, const Core::GCPoint * p3)
+//{
 
-}
+//}
 
 const Core::GCFigure *Core::CircumcircleCreator::Create() const
 {

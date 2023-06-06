@@ -1,0 +1,13 @@
+[GeometryConstruction] :
+	Figures :
+		GCLine[ Point(1, 1), Point(2, 2) ]
+		- Slave points :
+
+		Parallel line to GCLine[ Point(1, 1), Point(2, 2) ] and through Point(3, 5)
+
+		Circumcircle of points Point(1, 1), Point(2, 2), Point(3, 5)
+
+	Single points :
+
+GCLine[ Point(3, 5), Point(4, 6) ]
+GCCircle[ center : Point(-2, 5), radius : 5 ]

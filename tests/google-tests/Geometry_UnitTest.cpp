@@ -87,4 +87,20 @@ namespace Tests
 			EXPECT_TRUE( std::abs( Core::Geometry::GetAbsoluteAngle( v ) - angle ) < tolerance );
 		}
 	}
+	
+	TEST( GetNormalOfVector, Test1 )
+	{
+		double const r = CoreTests::Utils::GetRandomNumberInRange( 5, 10 );
+		int const n = CoreTests::Utils::GetRandomIntegerInRange( 10, 20 );
+		for ( int i = 0; i < n; ++i )
+		{
+			double const angle = i * ( 2 * PI ) / n;
+			Vector const v = { r * std::cos( angle ), r * std::sin( angle ) };
+			
+			Vector const normal = Core::Geometry::GetNormal( v );
+			
+			EXPECT_LT( std::abs( normal.GetNorm() - 1 ), tolerance );
+			EXPECT_LT( std::abs( normal.X() * v.X() + normal.Y() * v.Y() ), tolerance );
+		}
+	}
 }

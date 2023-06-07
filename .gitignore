@@ -1,6 +1,7 @@
 /_bin/*
 /GBCore.*
 *.autosave
+CMakeLists.txt.user
 .vscode
 ProjectDiscussionNotes
 

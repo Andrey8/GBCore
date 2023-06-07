@@ -2,9 +2,12 @@
 #include "../Utils.h"
 
 #include <gtest/gtest.h>
+#include <cmath>
 
 using Core::Geometry::Point;
 using Core::Geometry::Rect;
+using Core::Geometry::PI;
+using Core::Geometry::Vector;
 
 
 
@@ -26,8 +29,12 @@ namespace Tests
 }
 
 namespace Tests
-{	
-	TEST( RectTest1, General1 )
+{
+	static double const tolerance = 1e-6;
+	
+	
+	
+	TEST( SpecificRectTest_1, TestBoundaries )
 	{
 		Point const p1 = { 2, 3 };
 		Point const p2 = { 6, 11 };
@@ -47,21 +54,37 @@ namespace Tests
 		{
 			Rect const rect = { p1, p2 };
 			
-			EXPECT_EQ( rect.GetTopY(), std::max( p1.Y(), p2.Y() ) );
-			EXPECT_EQ( rect.GetBottomY(), std::min( p1.Y(), p2.Y() ) );
-			EXPECT_EQ( rect.GetLeftX(), std::min( p1.X(), p2.X() ) );
-			EXPECT_EQ( rect.GetRightX(), std::max( p1.X(), p2.X() ) );
+			EXPECT_TRUE( std::abs( rect.GetTopY() - std::max( p1.Y(), p2.Y() ) ) < tolerance );
+			EXPECT_TRUE( std::abs( rect.GetBottomY() - std::min( p1.Y(), p2.Y() ) ) < tolerance );
+			EXPECT_TRUE( std::abs( rect.GetLeftX() - std::min( p1.X(), p2.X() ) ) < tolerance );
+			EXPECT_TRUE( std::abs( rect.GetRightX() - std::max( p1.X(), p2.X() ) ) < tolerance );
 		}
 	};
 	
 	TEST_F( RectTest, RectBoundaries )
-	{
-		Point const p1 = CoreTests::Utils::GetRandomPointInRect( -10, 10, -10, 10 );
-		Point const p2 = CoreTests::Utils::GetRandomPointInRect( -10, 10, -10, 10 );
-		
+	{		
 		for ( int i = 0; i < 10; ++i )
 		{
+			Point const p1 = CoreTests::Utils::GetRandomPointInRect( -10, 10, -10, 10 );
+			Point const p2 = CoreTests::Utils::GetRandomPointInRect( -10, 10, -10, 10 );
+			
 			TestRectBoundaries( p1, p2 );
 		}		
+	}
+}
+
+namespace Tests
+{
+	TEST( GetAbsoluteAngleOfVector, Test1 )
+	{
+		double const r = 5;
+		int const n = CoreTests::Utils::GetRandomIntegerInRange( 10, 20 );
+		for ( int i = 0; i < n; ++i )
+		{
+			double const angle = i * ( 2 * PI ) / n;
+			Vector const v = { r * std::cos( angle ), r * std::sin( angle ) };
+			
+			EXPECT_TRUE( std::abs( Core::Geometry::GetAbsoluteAngle( v ) - angle ) < tolerance );
+		}
 	}
 }

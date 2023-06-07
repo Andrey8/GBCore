@@ -29,6 +29,16 @@ namespace Tests
 			std::cout << "Random point " << p.X() << " " << p.Y() << '\n';
 		}
 	}
+	
+	void Test3()
+	{
+		for ( int i = 0; i < 10; ++i )
+		{
+			int const n = CoreTests::Utils::GetRandomIntegerInRange( 10, 20 );
+			
+			std::cout << "Random integer " << n << '\n';
+		}
+	}
 }
 
 int main( int argc, char *argv[] )
@@ -36,7 +46,8 @@ int main( int argc, char *argv[] )
 	srand( time( 0 ) );
 	
 	//Tests::Test1();
-	Tests::Test2();
+	//Tests::Test2();
+	//Tests::Test3();
 	
 	
 	
